@@ -1,6 +1,9 @@
+/*jslint bitwise: true */
 /*global $: false, window: false, document: false */
 $(document).ready(function () {
     "use strict";
+
+    var coordToIndex, indexToCoord, moveTile, readImageFile, createPanel;
 
     // Check for the various File API support.
     if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
@@ -8,11 +11,11 @@ $(document).ready(function () {
         return;
     }
 
-    var coordToIndex = function (nrow, ncol, row, col) {
+    coordToIndex = function (nrow, ncol, row, col) {
         return row * ncol  + col;
     };
 
-    var indexToCoord = function (nrow, ncol, index) {
+    indexToCoord = function (nrow, ncol, index) {
         var row, col;
 
         col = index % ncol;
@@ -21,18 +24,88 @@ $(document).ready(function () {
         return [row, col];
     };
 
-    var generateMap = function (row, col) {
-        var i, j, x;
+    moveTile = function (row, col, direction) {
+    };
 
-        for (j = 0; j < row; j += 1) {
-            for (i = 0; i < col; i += 1) {
-                x = j * col + i;
-                console.log(j, i, x);
-            }
+    Array.prototype.shuffle = function () {
+        var counter = this.length, temp, index;
+
+        // While there are elements in the array
+        while (counter) {
+            counter -= 1;
+
+            // Pick a random index
+            index = (Math.random() * counter) | 0;
+
+            // And swap the last element with it
+            temp = this[counter];
+            this[counter] = this[index];
+            this[index] = temp;
         }
     };
 
-    var moveTile = function (row, col, direction) {
+    function Map(rows, cols) {
+        this.rows = rows;
+        this.cols = cols;
+        this.init();
+    }
+
+    Map.prototype = {
+        init: function () {
+            var i, j, row;
+
+            this.matrix = [];
+            for (j = 0; j < this.rows; j += 1) {
+                row = [];
+                for (i = 0; i < this.cols + 1; i += 1) {
+                    row.push(null);
+                }
+                this.matrix.push(row);
+            }
+        },
+
+        regularize: function () {
+            var i, j, seq;
+
+            seq = [];
+            for (i = 0; i < this.rows * this.cols; i += 1) {
+                seq.push(i);
+            }
+
+            for (j = 0; j < this.rows; j += 1) {
+                for (i = 0; i < this.cols; i += 1) {
+                    this.matrix[j][i] = seq[j * this.cols + i];
+                }
+                if (j === this.rows - 1) {
+                    this.matrix[j][i] = -1;
+                }
+                console.log(this.matrix[j]);
+            }
+        },
+
+        randomize: function () {
+            var i, j, seq;
+
+            seq = [];
+            for (i = 0; i < this.rows * this.cols; i += 1) {
+                seq.push(i);
+            }
+            seq.shuffle();
+
+            for (j = 0; j < this.rows; j += 1) {
+                for (i = 0; i < this.cols; i += 1) {
+                    this.matrix[j][i] = seq[j * this.cols + i];
+                }
+                if (j === this.rows - 1) {
+                    this.matrix[j][i] = -1;
+                }
+                console.log(this.matrix[j]);
+            }
+        },
+
+        getCell: function (row, col) {
+            return this.matrix[row][col];
+        }
     };
 
 
@@ -47,13 +120,13 @@ $(document).ready(function () {
             this.image = image;
             this.tileSize = tileSize;
 
-            this.tileXN = (image.width - image.width % tileSize) / tileSize;
-            this.tileYN = (image.height - image.height % tileSize) / tileSize;
+            this.cols = (image.width - image.width % tileSize) / tileSize;
+            this.rows = (image.height - image.height % tileSize) / tileSize;
 
             this.tiles = [];
 
-            for (j = 0; j < this.tileYN; j += 1) {
-                for (i = 0; i < this.tileXN; i += 1) {
+            for (j = 0; j < this.rows; j += 1) {
+                for (i = 0; i < this.cols; i += 1) {
                     sx = i * tileSize;
                     sy = j * tileSize;
                     px = i * (tileSize + 2);
@@ -73,25 +146,51 @@ $(document).ready(function () {
         },
 
         getTile: function (row, col) {
-            var index = row * this.tileXN + col;
+            var index = row * this.cols + col;
             return this.tiles[index];
         }
     };
 
-    function Panel(tileSize, tileXN, tileYN) {
+    function Panel(tileSize, rows, cols) {
+        this.tileSize = tileSize;
+        this.rows = rows;
+        this.cols = cols;
+
         this.panel = document.createElement('div');
         this.panel.setAttribute('class', 'panel');
 
-        this.width = (tileSize + 2) * (tileXN + 1) + 20;
-        this.height = (tileSize + 2) * (tileYN + 1) + 20;
+        this.width = (tileSize + 2) * (cols + 1) + 20;
+        this.height = (tileSize + 2) * (rows + 1) + 20;
 
         this.panel.setAttribute('style', 'width:' + this.width + 'px; height:' + this.height + 'px');
     }
 
     Panel.prototype = {
+        addTile: function (row, col, tile) {
+            var x, y;
+
+            x = col * (this.tileSize + 2);
+            y = row * (this.tileSize + 2);
+            tile.setAttribute('style', 'left: ' + x + 'px; top: ' + y + 'px');
+            this.panel.appendChild(tile);
+        },
+
+        applyMap: function (map, tileMatrix) {
+            var i, j, index, row, col, tile;
+
+            for (j = 0; j < this.rows; j += 1) {
+                for (i = 0; i < this.cols; i += 1) {
+                    index = map.getCell(j, i);
+                    col = index % this.cols;
+                    row = (index - col) / this.cols;
+                    tile = tileMatrix.getTile(row, col);
+                    this.addTile(j, i, tile);
+                }
+            }
+        }
     };
 
-    var readImageFile = function (file, callback) {
+    readImageFile = function (file, callback) {
         var reader = new window.FileReader();
         reader.readAsDataURL(file);
         reader.onload = function (evt) {
@@ -103,22 +202,26 @@ $(document).ready(function () {
         };
     };
 
-    var createPanel = function (image) {
-        var body, tiles, panel, tileSize, i, j, px, py, tile;
+    createPanel = function (image) {
+        var tiles, panel, map, tileSize;
 
         tileSize = parseInt($("#tile-size").val(), 10);
-        tiles = new TileMatrix(image, tileSize);
-        panel = new Panel(tileSize, tiles.tileXN, tiles.tileYN);
-
-        for (j = 0; j < tiles.tileYN; j += 1) {
-            for (i = 0; i < tiles.tileXN; i += 1) {
-                px = i * (tileSize + 2);
-                py = j * (tileSize + 2);
-                tile = tiles.getTile(j, i);
-                tile.setAttribute('style', 'left: ' + px + 'px; top: ' + py + 'px');
-                panel.panel.appendChild(tile);
-            }
+        if (image.width < tileSize) {
+            window.alert('Image width is less than tile size!');
+            return null;
         }
+        if (image.height < tileSize) {
+            window.alert('Image height is less than tile size!');
+            return null;
+        }
+
+        tiles = new TileMatrix(image, tileSize);
+        panel = new Panel(tileSize, tiles.rows, tiles.cols);
+        map = new Map(tiles.rows, tiles.cols);
+        //map.regularize();
+        map.randomize();
+
+        panel.applyMap(map, tiles);
 
         return panel;
     };
@@ -156,8 +259,10 @@ $(document).ready(function () {
         readImageFile(file, function (image) {
             var panel, body;
             panel = createPanel(image);
-            body = document.getElementsByTagName('body')[0];
-            body.appendChild(panel.panel);
+            if (panel) {
+                body = document.getElementsByTagName('body')[0];
+                body.appendChild(panel.panel);
+            }
         });
     });
 });
