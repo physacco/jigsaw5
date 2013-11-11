@@ -79,7 +79,6 @@ $(document).ready(function () {
                 if (j === this.rows - 1) {
                     this.matrix[j][i] = -1;
                 }
-                console.log(this.matrix[j]);
             }
         },
 
@@ -99,15 +98,46 @@ $(document).ready(function () {
                 if (j === this.rows - 1) {
                     this.matrix[j][i] = -1;
                 }
-                console.log(this.matrix[j]);
             }
         },
 
         getCell: function (row, col) {
+            if (row < 0 || row >= this.rows) {
+                return null;
+            }
+
+            if (col < 0 || col > this.cols) {
+                return null;
+            }
+
             return this.matrix[row][col];
+        },
+
+        findPath: function (row, col) {
+            var i, choices, choice, cell;
+
+            // up, down, left, right
+            choices = [[row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1]];
+
+            for (i = 0; i < choices.length; i += 1) {
+                choice = choices[i];
+                cell = this.getCell(choice[0], choice[1]);
+                if (cell === -1) {  // empty
+                    return choice;
+                }
+            }
+
+            return null;
+        },
+
+        swapCells: function (row1, col1, row2, col2) {
+            var tmp;
+
+            tmp = this.matrix[row1][col1];
+            this.matrix[row1][col1] = this.matrix[row2][col2];
+            this.matrix[row2][col2] = tmp;
         }
     };
-
 
     function TileMatrix(image, tileSize) {
         this.init(image, tileSize);
@@ -167,7 +197,14 @@ $(document).ready(function () {
 
     Panel.prototype = {
         addTile: function (row, col, tile) {
-            var x, y;
+            var x, y, self;
+
+            self = this;
+            tile.setAttribute('data-map-row', row);
+            tile.setAttribute('data-map-col', col);
+            tile.addEventListener('click', function (evt) {
+                self.onMoveTile(tile, evt);
+            });
 
             x = col * (this.tileSize + 2);
             y = row * (this.tileSize + 2);
@@ -178,6 +215,9 @@ $(document).ready(function () {
         applyMap: function (map, tileMatrix) {
             var i, j, index, row, col, tile;
 
+            this.map = map;
+            this.tileMatrix = tileMatrix;
+
             for (j = 0; j < this.rows; j += 1) {
                 for (i = 0; i < this.cols; i += 1) {
                     index = map.getCell(j, i);
@@ -187,6 +227,34 @@ $(document).ready(function () {
                     this.addTile(j, i, tile);
                 }
             }
+        },
+
+        onMoveTile: function (tile, evt) {
+            var row, col, path, newrow, newcol;
+
+            row = parseInt(tile.getAttribute('data-map-row'), 10);
+            col = parseInt(tile.getAttribute('data-map-col'), 10);
+
+            path = this.map.findPath(row, col);
+            if (!path) {  // no way to go
+                return;
+            }
+
+            newrow = path[0];
+            newcol = path[1];
+            this.map.swapCells(row, col, newrow, newcol);
+            this.moveTile(newrow, newcol, tile);
+        },
+
+        moveTile: function (row, col, tile) {
+            var x, y;
+
+            tile.setAttribute('data-map-row', row);
+            tile.setAttribute('data-map-col', col);
+
+            x = col * (this.tileSize + 2);
+            y = row * (this.tileSize + 2);
+            tile.setAttribute('style', 'left: ' + x + 'px; top: ' + y + 'px');
         }
     };
 
