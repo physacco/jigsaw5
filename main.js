@@ -3,29 +3,13 @@
 $(document).ready(function () {
     "use strict";
 
-    var coordToIndex, indexToCoord, moveTile, readImageFile, createPanel;
+    var readImageFile, createPanel;
 
     // Check for the various File API support.
     if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
         window.alert('The File APIs are not fully supported in this browser.');
         return;
     }
-
-    coordToIndex = function (nrow, ncol, row, col) {
-        return row * ncol  + col;
-    };
-
-    indexToCoord = function (nrow, ncol, index) {
-        var row, col;
-
-        col = index % ncol;
-        row = (index - col) / ncol;
-
-        return [row, col];
-    };
-
-    moveTile = function (row, col, direction) {
-    };
 
     Array.prototype.shuffle = function () {
         var counter = this.length, temp, index;
