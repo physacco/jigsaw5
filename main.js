@@ -3,8 +3,6 @@
 $(document).ready(function () {
     "use strict";
 
-    var readImageFile, createPanel;
-
     // Check for the various File API support.
     if (!(window.File && window.FileReader && window.FileList && window.Blob)) {
         window.alert('The File APIs are not fully supported in this browser.');
@@ -26,6 +24,18 @@ $(document).ready(function () {
             this[counter] = this[index];
             this[index] = temp;
         }
+    };
+
+    window.Image.fromLocalFile = function (file) {
+        var image, reader;
+
+        image = new window.Image();
+        reader = new window.FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = function (evt) {
+            image.src = evt.target.result;
+        };
+        return image;
     };
 
     function Map(rows, cols) {
@@ -179,7 +189,36 @@ $(document).ready(function () {
         this.panel.setAttribute('style', 'width:' + this.width + 'px; height:' + this.height + 'px');
     }
 
+    Panel.create = function (image) {
+        var tiles, panel, map, tileSize;
+
+        tileSize = parseInt($("#tile-size").val(), 10);
+        if (image.width < tileSize) {
+            window.alert('Image width is less than tile size!');
+            return null;
+        }
+        if (image.height < tileSize) {
+            window.alert('Image height is less than tile size!');
+            return null;
+        }
+
+        tiles = new TileMatrix(image, tileSize);
+        panel = new Panel(tileSize, tiles.rows, tiles.cols);
+        map = new Map(tiles.rows, tiles.cols);
+        //map.regularize();
+        map.randomize();
+
+        panel.applyMap(map, tiles);
+
+        return panel;
+    };
+
     Panel.prototype = {
+        show: function () {
+            var body = document.getElementsByTagName('body')[0];
+            body.appendChild(this.panel);
+        },
+
         addTile: function (row, col, tile) {
             var x, y, self;
 
@@ -242,42 +281,6 @@ $(document).ready(function () {
         }
     };
 
-    readImageFile = function (file, callback) {
-        var reader = new window.FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = function (evt) {
-            var image = new window.Image();
-            image.src = evt.target.result;
-            image.onload = function () {
-                callback(image);
-            };
-        };
-    };
-
-    createPanel = function (image) {
-        var tiles, panel, map, tileSize;
-
-        tileSize = parseInt($("#tile-size").val(), 10);
-        if (image.width < tileSize) {
-            window.alert('Image width is less than tile size!');
-            return null;
-        }
-        if (image.height < tileSize) {
-            window.alert('Image height is less than tile size!');
-            return null;
-        }
-
-        tiles = new TileMatrix(image, tileSize);
-        panel = new Panel(tileSize, tiles.rows, tiles.cols);
-        map = new Map(tiles.rows, tiles.cols);
-        //map.regularize();
-        map.randomize();
-
-        panel.applyMap(map, tiles);
-
-        return panel;
-    };
-
     $("#file").on('click', function (evt) {
         var tileSize = parseInt($("#tile-size").val(), 10);
 
@@ -298,7 +301,9 @@ $(document).ready(function () {
     });
 
     $("#file").on('change', function (evt) {
-        var file = evt.target.files[0];
+        var file, image;
+
+        file = evt.target.files[0];
         if (!file) {
             return false;
         }
@@ -308,13 +313,12 @@ $(document).ready(function () {
             return false;
         }
 
-        readImageFile(file, function (image) {
-            var panel, body;
-            panel = createPanel(image);
+        image = window.Image.fromLocalFile(file);
+        image.onload = function () {
+            var panel = Panel.create(image);
             if (panel) {
-                body = document.getElementsByTagName('body')[0];
-                body.appendChild(panel.panel);
+                panel.show();
             }
-        });
+        };
     });
 });
