@@ -130,6 +130,20 @@ $(document).ready(function () {
             tmp = this.matrix[row1][col1];
             this.matrix[row1][col1] = this.matrix[row2][col2];
             this.matrix[row2][col2] = tmp;
+        },
+
+        findBlank: function () {
+            var i, j;
+
+            for (i = 0; i < this.rows; i += 1) {
+                for (j = 0; j <= this.cols; j += 1) {
+                    if (this.matrix[i][j] === -1) {
+                        return [i, j];
+                    }
+                }
+            }
+
+            return null;
         }
     };
 
@@ -235,6 +249,22 @@ $(document).ready(function () {
             this.panel.appendChild(tile);
         },
 
+        getTile: function (row, col) {
+            var i, tiles, tile, x, y;
+
+            tiles = this.panel.querySelectorAll(".tile");
+            for (i = 0; i < tiles.length; i += 1) {
+                tile = tiles[i];
+                x = parseInt(tile.getAttribute("data-map-row"), 10);
+                y = parseInt(tile.getAttribute("data-map-col"), 10);
+                if (x === row && y === col) {
+                    return tile;
+                }
+            }
+
+            return null;
+        },
+
         applyMap: function (map, tileMatrix) {
             var i, j, index, row, col, tile;
 
@@ -253,10 +283,15 @@ $(document).ready(function () {
         },
 
         onMoveTile: function (tile, evt) {
-            var row, col, path, newrow, newcol;
+            var row, col;
 
             row = parseInt(tile.getAttribute('data-map-row'), 10);
             col = parseInt(tile.getAttribute('data-map-col'), 10);
+            this.moveTile(row, col);
+        },
+
+        moveTile: function (row, col) {
+            var path, newrow, newcol, tile;
 
             path = this.map.findPath(row, col);
             if (!path) {  // no way to go
@@ -266,10 +301,12 @@ $(document).ready(function () {
             newrow = path[0];
             newcol = path[1];
             this.map.swapCells(row, col, newrow, newcol);
-            this.moveTile(newrow, newcol, tile);
+
+            tile = this.getTile(row, col);
+            this.moveTile1(newrow, newcol, tile);
         },
 
-        moveTile: function (row, col, tile) {
+        moveTile1: function (row, col, tile) {
             var x, y;
 
             tile.setAttribute('data-map-row', row);
@@ -315,9 +352,9 @@ $(document).ready(function () {
 
         image = window.Image.fromLocalFile(file);
         image.onload = function () {
-            var panel = Panel.create(image);
-            if (panel) {
-                panel.show();
+            window.panel = Panel.create(image);
+            if (window.panel) {
+                window.panel.show();
             }
         };
     });
