@@ -144,6 +144,25 @@ $(document).ready(function () {
             }
 
             return null;
+        },
+
+        findPathForBlank: function (row, col) {
+            var i, paths, choices, choice, cell;
+
+            paths = [];
+
+            // up, down, left, right
+            choices = [[row - 1, col], [row + 1, col], [row, col - 1], [row, col + 1]];
+
+            for (i = 0; i < choices.length; i += 1) {
+                choice = choices[i];
+                cell = this.getCell(choice[0], choice[1]);
+                if (cell !== null && cell >= 0) {  // non-null, non-empty
+                    paths.push(choice);
+                }
+            }
+
+            return paths;
         }
     };
 
@@ -219,8 +238,8 @@ $(document).ready(function () {
         tiles = new TileMatrix(image, tileSize);
         panel = new Panel(tileSize, tiles.rows, tiles.cols);
         map = new Map(tiles.rows, tiles.cols);
-        //map.regularize();
-        map.randomize();
+        map.regularize();
+        //map.randomize();
 
         panel.applyMap(map, tiles);
 
@@ -315,6 +334,66 @@ $(document).ready(function () {
             x = col * (this.tileSize + 2);
             y = row * (this.tileSize + 2);
             tile.setAttribute('style', 'left: ' + x + 'px; top: ' + y + 'px');
+        },
+
+        moveBlank: function (newrow, newcol) {
+            var i, coord, row, col, paths, path;
+
+            coord = this.map.findBlank();
+            if (coord === null) {
+                return;
+            }
+
+            row = coord[0];
+            col = coord[1];
+
+            paths = this.map.findPathForBlank(row, col);
+            if (paths === null) {
+                return;
+            }
+
+            for (i = 0; i < paths.length; i += 1) {
+                path = paths[i];
+                if (path[0] === newrow && path[1] === newcol) {
+                    this.moveTile(newrow, newcol);
+                    break;
+                }
+            }
+        },
+
+        randomlyMoveBlank: function (steps, sleep) {
+            if (!(typeof steps === "number" && steps > 0)) {
+                return;
+            }
+
+            this.randomlyMoveBlank1();
+
+            if (sleep) {
+                setTimeout(function (self) {
+                    self.randomlyMoveBlank(steps - 1, sleep);
+                }, sleep, this);
+            } else {
+                this.randomlyMoveBlank(steps - 1, sleep);
+            }
+        },
+
+        randomlyMoveBlank1: function () {
+            var coord, paths, path;
+
+            coord = this.map.findBlank();
+            if (coord === null) {
+                return;
+            }
+
+            paths = this.map.findPathForBlank(coord[0], coord[1]);
+            if (paths === null) {
+                return;
+            }
+
+            path = paths[Math.floor(Math.random() * paths.length)];
+            if (path) {
+                this.moveBlank(path[0], path[1]);
+            }
         }
     };
 
