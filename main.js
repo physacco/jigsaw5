@@ -243,6 +243,9 @@ $(document).ready(function () {
 
         panel.applyMap(map, tiles);
 
+        panel.randomlyMoveBlank(tiles.rows * tiles.cols * 20);
+        panel.resetBlank();
+
         return panel;
     };
 
@@ -393,6 +396,45 @@ $(document).ready(function () {
             path = paths[Math.floor(Math.random() * paths.length)];
             if (path) {
                 this.moveBlank(path[0], path[1]);
+            }
+        },
+
+        resetBlank: function (sleep) {
+            var coord, dest, distance, paths, path;
+
+            coord = this.map.findBlank();
+            if (coord === null) {
+                return;
+            }
+
+            dest = [this.map.rows - 1, this.map.cols];
+            distance = dest[0] - coord[0] + dest[1] - coord[1];
+            if (distance === 0) {
+                return;
+            }
+
+            paths = this.map.findPathForBlank(coord[0], coord[1]);
+            if (paths === null) {
+                return;
+            }
+
+            paths.sort(function (a, b) {
+                var da, db;
+
+                da = dest[0] - a[0] + dest[1] - a[1];
+                db = dest[0] - b[0] + dest[1] - b[1];
+                return da - db;
+            });
+
+            path = paths[0];
+            this.moveBlank(path[0], path[1]);
+
+            if (sleep) {
+                setTimeout(function (self) {
+                    self.resetBlank(sleep);
+                }, sleep, this);
+            } else {
+                this.resetBlank(sleep);
             }
         }
     };
