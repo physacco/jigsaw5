@@ -95,6 +95,20 @@ $(document).ready(function () {
             }
         },
 
+        isRegular: function () {
+            var i, j;
+
+            for (j = 0; j < this.rows; j += 1) {
+                for (i = 0; i < this.cols; i += 1) {
+                    if (this.matrix[j][i] !== (j * this.cols + i)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        },
+
         getCell: function (row, col) {
             if (row < 0 || row >= this.rows) {
                 return null;
@@ -255,15 +269,39 @@ $(document).ready(function () {
             body.appendChild(this.panel);
         },
 
+        freeze: function () {
+            $(".tile").each(function () {
+                var jqElem, row, col, left, top;
+
+                jqElem = $(this);
+                row = parseInt(jqElem.data("map-row"), 10);
+                col = parseInt(jqElem.data("map-col"), 10);
+                left = parseInt(jqElem.css("left"), 10);
+                top = parseInt(jqElem.css("top"), 10);
+
+                jqElem.css({
+                    margin: 0,
+                    left: left - col * 2,
+                    top: top - row * 2
+                });
+
+                this.removeEventListener("click", this.clickListener);
+            });
+        },
+
         addTile: function (row, col, tile) {
-            var x, y, self;
+            var x, y, self, listener;
 
             self = this;
+            listener = function (evt) {
+                self.onMoveTile(tile, evt);
+            };
+
             tile.setAttribute('data-map-row', row);
             tile.setAttribute('data-map-col', col);
-            tile.addEventListener('click', function (evt) {
-                self.onMoveTile(tile, evt);
-            });
+
+            tile.addEventListener('click', listener);
+            tile.clickListener = listener;
 
             x = col * (this.tileSize + 2);
             y = row * (this.tileSize + 2);
@@ -310,6 +348,10 @@ $(document).ready(function () {
             row = parseInt(tile.getAttribute('data-map-row'), 10);
             col = parseInt(tile.getAttribute('data-map-col'), 10);
             this.moveTile(row, col);
+
+            if (this.map.isRegular()) {
+                this.freeze();
+            }
         },
 
         moveTile: function (row, col) {
