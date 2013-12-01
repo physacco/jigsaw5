@@ -4,17 +4,23 @@
   <meta charset="utf-8">
   <title>jigsaw5</title>
   <style>
+  #game-area {line-height: 30px;}
   .panel {position: relative; line-height: 0}
   .tile {position: absolute; margin: 1px}
+  .file-input-wrapper {display: inline; position: relative; padding: 2px 4px; background: #ddd; overflow: hidden}
+  .file-input {display: block; position: absolute; top: 0; left: 0; margin: 0; padding: 20px; opacity: 0}
   </style>
 </head>
 <body>
-  <div>
-    <label for="tile-size">Tile size:</label>
-    <input id="tile-size" type="text" value="100">
-    <br>
+  <div id="game-area">
+    <div id="get-tile-size">
+      <label for="tile-size">Tile size:</label>
+      <input id="tile-size" type="text" value="100">
+    </div>
+    <div id="get-file">
+      <label>Choose a file:</label>
+    </div>
   </div>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
   <script src="main.js"></script>
 </body>
 </html>

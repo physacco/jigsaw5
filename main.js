@@ -1,6 +1,6 @@
 /*jslint bitwise: true */
-/*global $: false, window: false, document: false */
-$(document).ready(function () {
+/*global window: false, document: false */
+(function () {
     "use strict";
 
     // Check for the various File API support.
@@ -239,7 +239,7 @@ $(document).ready(function () {
     Panel.create = function (image) {
         var tiles, panel, map, tileSize;
 
-        tileSize = parseInt($("#tile-size").val(), 10);
+        tileSize = parseInt(document.querySelector("#tile-size").value, 10);
         if (image.width < tileSize) {
             window.alert('Image width is less than tile size!');
             return null;
@@ -265,33 +265,32 @@ $(document).ready(function () {
 
     Panel.prototype = {
         show: function () {
-            var body = document.querySelector('body');
-            body.appendChild(this.panel);
+            var parent = document.querySelector('#game-area');
+            parent.appendChild(this.panel);
         },
 
         remove: function () {
-            var body = document.querySelector('body');
-            body.removeChild(this.panel);
+            var parent = document.querySelector('#game-area');
+            parent.removeChild(this.panel);
         },
 
         freeze: function () {
-            $(".tile").each(function () {
-                var jqElem, row, col, left, top;
+            var i, tiles, tile, row, col, left, top;
 
-                jqElem = $(this);
-                row = parseInt(jqElem.data("map-row"), 10);
-                col = parseInt(jqElem.data("map-col"), 10);
-                left = parseInt(jqElem.css("left"), 10);
-                top = parseInt(jqElem.css("top"), 10);
+            tiles = document.querySelectorAll(".tile");
+            for (i = 0; i < tiles.length; i += 1) {
+                tile = tiles[i];
+                row = parseInt(tile.dataset.mapRow, 10);
+                col = parseInt(tile.dataset.mapCol, 10);
+                left = parseInt(tile.style.left, 10);
+                top = parseInt(tile.style.top, 10);
 
-                jqElem.css({
-                    margin: 0,
-                    left: left - col * 2,
-                    top: top - row * 2
-                });
+                tile.style.margin = "0px";
+                tile.style.left = (left - col * 2) + "px";
+                tile.style.top = (top - row * 2) + "px";
 
-                this.removeEventListener("click", this.clickListener);
-            });
+                tile.removeEventListener("click", tile.clickListener);
+            }
         },
 
         addTile: function (row, col, tile) {
@@ -488,12 +487,20 @@ $(document).ready(function () {
 
     function FileInput(parent) {
         this.parent = parent;
-        this.wrapper = document.createElement("div");
-        this.wrapper.setAttribute("id", "file-input-wrapper");
-        this.show();
+        this.init();
     }
 
     FileInput.prototype = {
+        init: function () {
+            var wrapper;
+
+            wrapper = document.createElement("div");
+            wrapper.setAttribute("class", "file-input-wrapper");
+            wrapper.textContent = "Browse...";
+            this.wrapper = wrapper;
+            this.show();
+        },
+
         show: function () {
             this.parent.appendChild(this.wrapper);
             this.refresh();
@@ -508,6 +515,7 @@ $(document).ready(function () {
 
             this.input = document.createElement("input");
             this.input.setAttribute("type", "file");
+            this.input.setAttribute("class", "file-input");
             this.wrapper.appendChild(this.input);
 
             this.input.addEventListener("click", function (evt) {
@@ -524,7 +532,7 @@ $(document).ready(function () {
         },
 
         onclick: function (evt) {
-            var tileSize = parseInt($("#tile-size").val(), 10);
+            var tileSize = parseInt(document.querySelector("#tile-size").value, 10);
 
             if (isNaN(tileSize)) {
                 window.alert("Invalid value for tile size!");
@@ -569,5 +577,5 @@ $(document).ready(function () {
         }
     };
 
-    var fileInput = new FileInput(document.querySelector('body'));
-});
+    var fileInput = new FileInput(document.querySelector('#get-file'));
+}());
