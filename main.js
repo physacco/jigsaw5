@@ -265,8 +265,13 @@ $(document).ready(function () {
 
     Panel.prototype = {
         show: function () {
-            var body = document.getElementsByTagName('body')[0];
+            var body = document.querySelector('body');
             body.appendChild(this.panel);
+        },
+
+        remove: function () {
+            var body = document.querySelector('body');
+            body.removeChild(this.panel);
         },
 
         freeze: function () {
@@ -515,6 +520,10 @@ $(document).ready(function () {
 
         image = window.Image.fromLocalFile(file);
         image.onload = function () {
+            if (window.panel) {
+                window.panel.remove();
+            }
+
             window.panel = Panel.create(image);
             if (window.panel) {
                 window.panel.show();
