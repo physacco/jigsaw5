@@ -486,48 +486,88 @@ $(document).ready(function () {
         }
     };
 
-    $("#file").on('click', function (evt) {
-        var tileSize = parseInt($("#tile-size").val(), 10);
+    function FileInput(parent) {
+        this.parent = parent;
+        this.wrapper = document.createElement("div");
+        this.wrapper.setAttribute("id", "file-input-wrapper");
+        this.show();
+    }
 
-        if (isNaN(tileSize)) {
-            window.alert("Invalid value for tile size!");
-            return false;
-        }
+    FileInput.prototype = {
+        show: function () {
+            this.parent.appendChild(this.wrapper);
+            this.refresh();
+        },
 
-        if (tileSize < 10) {
-            window.alert("Tile size is too small!");
-            return false;
-        }
+        refresh: function () {
+            var self = this;
 
-        if (tileSize > 500) {
-            window.alert("Tile size is too big!");
-            return false;
-        }
-    });
-
-    $("#file").on('change', function (evt) {
-        var file, image;
-
-        file = evt.target.files[0];
-        if (!file) {
-            return false;
-        }
-
-        if (!file.type.match(/^image\//)) {
-            window.alert('not an image file');
-            return false;
-        }
-
-        image = window.Image.fromLocalFile(file);
-        image.onload = function () {
-            if (window.panel) {
-                window.panel.remove();
+            if (this.input) {
+                this.wrapper.removeChild(this.input);
             }
 
-            window.panel = Panel.create(image);
-            if (window.panel) {
-                window.panel.show();
+            this.input = document.createElement("input");
+            this.input.setAttribute("type", "file");
+            this.wrapper.appendChild(this.input);
+
+            this.input.addEventListener("click", function (evt) {
+                self.onclick(evt);
+            });
+            this.input.addEventListener("change", function (evt) {
+                self.onchange(evt);
+                self.refresh();
+            });
+        },
+
+        remove: function () {
+            this.parent.removeChild(this.wrapper);
+        },
+
+        onclick: function (evt) {
+            var tileSize = parseInt($("#tile-size").val(), 10);
+
+            if (isNaN(tileSize)) {
+                window.alert("Invalid value for tile size!");
+                return false;
             }
-        };
-    });
+
+            if (tileSize < 10) {
+                window.alert("Tile size is too small!");
+                return false;
+            }
+
+            if (tileSize > 500) {
+                window.alert("Tile size is too big!");
+                return false;
+            }
+        },
+
+        onchange: function (evt) {
+            var file, image;
+
+            file = evt.target.files[0];
+            if (!file) {
+                return false;
+            }
+
+            if (!file.type.match(/^image\//)) {
+                window.alert('not an image file');
+                return false;
+            }
+
+            image = window.Image.fromLocalFile(file);
+            image.onload = function () {
+                if (window.panel) {
+                    window.panel.remove();
+                }
+
+                window.panel = Panel.create(image);
+                if (window.panel) {
+                    window.panel.show();
+                }
+            };
+        }
+    };
+
+    var fileInput = new FileInput(document.querySelector('body'));
 });
