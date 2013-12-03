@@ -260,6 +260,17 @@
         panel.randomlyMoveBlank(tiles.rows * tiles.cols * 20);
         panel.resetBlank();
 
+        // reset counters
+        document.querySelector("#step").textContent = '0';
+        document.querySelector("#time").textContent = '0';
+
+        // start timer
+        panel.timer = setInterval(function () {
+            var time;
+            time = document.querySelector("#time");
+            time.textContent = parseInt(time.textContent, 10) + 1;
+        }, 1000);
+
         return panel;
     };
 
@@ -272,6 +283,9 @@
         remove: function () {
             var parent = document.querySelector('#game-area');
             parent.removeChild(this.panel);
+            if (this.timer) {
+                clearInterval(this.timer);
+            }
         },
 
         freeze: function () {
@@ -291,6 +305,8 @@
 
                 tile.removeEventListener("click", tile.clickListener);
             }
+
+            clearInterval(this.timer);
         },
 
         addTile: function (row, col, tile) {
