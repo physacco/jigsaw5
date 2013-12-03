@@ -347,11 +347,14 @@
         },
 
         onMoveTile: function (tile, evt) {
-            var row, col;
+            var row, col, step;
 
             row = parseInt(tile.getAttribute('data-map-row'), 10);
             col = parseInt(tile.getAttribute('data-map-col'), 10);
-            this.moveTile(row, col);
+            if (this.moveTile(row, col)) {
+                step = document.querySelector("#step");
+                step.textContent = parseInt(step.textContent, 10) + 1;
+            }
 
             if (this.map.isRegular()) {
                 this.freeze();
@@ -363,7 +366,7 @@
 
             path = this.map.findPath(row, col);
             if (!path) {  // no way to go
-                return;
+                return false;
             }
 
             newrow = path[0];
@@ -372,6 +375,7 @@
 
             tile = this.getTile(row, col);
             this.moveTile1(newrow, newcol, tile);
+            return true;
         },
 
         moveTile1: function (row, col, tile) {
