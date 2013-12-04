@@ -33,8 +33,17 @@
         reader = new window.FileReader();
         reader.readAsDataURL(file);
         reader.onload = function (evt) {
+            window.localStorage.setItem('imgSrc', evt.target.result);
             image.src = evt.target.result;
         };
+        return image;
+    };
+
+    window.Image.fromSourceURL = function (url) {
+        var image;
+
+        image = new window.Image();
+        image.src = imgSrc;
         return image;
     };
 
@@ -598,4 +607,19 @@
     };
 
     var fileInput = new FileInput(document.querySelector('#get-file'));
+
+    var imgSrc = window.localStorage.getItem('imgSrc');
+    if (imgSrc) {
+        var image = window.Image.fromSourceURL(imgSrc);
+        image.onload = function () {
+            if (window.panel) {
+                window.panel.remove();
+            }
+
+            window.panel = Panel.create(image);
+            if (window.panel) {
+                window.panel.show();
+            }
+        };
+    }
 }());
