@@ -271,14 +271,17 @@
 
         // reset counters
         document.querySelector("#step").textContent = '0';
-        document.querySelector("#time").textContent = '0';
+        document.querySelector("#time").textContent = '0.0';
 
         // start timer
+        panel.beginTime = new Date();
         panel.timer = setInterval(function () {
-            var time;
+            var now, elapse, time;
+            now = new Date();
+            elapse = (now - panel.beginTime) / 1000.0;
             time = document.querySelector("#time");
-            time.textContent = parseInt(time.textContent, 10) + 1;
-        }, 1000);
+            time.textContent = elapse;
+        }, 100);
 
         return panel;
     };
