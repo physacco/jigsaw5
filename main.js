@@ -43,7 +43,7 @@
         var image;
 
         image = new window.Image();
-        image.src = imgSrc;
+        image.src = url;
         return image;
     };
 
@@ -606,20 +606,62 @@
         }
     };
 
-    var fileInput = new FileInput(document.querySelector('#get-file'));
-
-    var imgSrc = window.localStorage.getItem('imgSrc');
-    if (imgSrc) {
-        var image = window.Image.fromSourceURL(imgSrc);
-        image.onload = function () {
-            if (window.panel) {
-                window.panel.remove();
-            }
-
-            window.panel = Panel.create(image);
-            if (window.panel) {
-                window.panel.show();
-            }
-        };
+    function Game() {
     }
+
+    Game.prototype = {
+        load: function () {
+            var imgSrc, image;
+
+            imgSrc = this.read('imgSrc');
+            if (!imgSrc) {
+                return;
+            }
+
+            image = window.Image.fromSourceURL(imgSrc);
+            image.onload = function () {
+                if (window.panel) {
+                    window.panel.remove();
+                }
+
+                window.panel = Panel.create(image);
+                if (window.panel) {
+                    window.panel.show();
+                }
+            };
+        },
+
+        keys: function () {
+            var i, result;
+
+            result = [];
+            for (i = 0; i < window.localStorage.length; i += 1) {
+                result.push(window.localStorage.key(i));
+            }
+            return result;
+        },
+
+        read: function (key) {
+            return window.localStorage.getItem(key);
+        },
+
+        write: function (key, value) {
+            return window.localStorage.setItem(key, value);
+        },
+
+        remove: function (key) {
+            return window.localStorage.removeItem(key);
+        },
+
+        clear: function () {
+            return window.localStorage.clear();
+        }
+    };
+
+    if (typeof window.game === "undefined") {
+        window.game = new Game();
+    }
+
+    window.game.fileInput = new FileInput(document.querySelector('#get-file'));
+    window.game.load();
 }());
