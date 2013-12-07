@@ -664,4 +664,8 @@
 
     window.game.fileInput = new FileInput(document.querySelector('#get-file'));
     window.game.load();
+
+    document.querySelector("#reset").addEventListener("click", function () {
+        window.game.load();
+    });
 }());
