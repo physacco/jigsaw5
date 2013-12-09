@@ -239,8 +239,8 @@
         this.panel = document.createElement('div');
         this.panel.setAttribute('class', 'panel');
 
-        this.width = (tileSize + 2) * (cols + 1) + 20;
-        this.height = (tileSize + 2) * (rows + 1) + 20;
+        this.width = (tileSize + 2) * (cols + 1);
+        this.height = (tileSize + 2) * rows;
 
         this.panel.setAttribute('style', 'width:' + this.width + 'px; height:' + this.height + 'px');
     }
@@ -268,6 +268,7 @@
 
         panel.randomlyMoveBlank(tiles.rows * tiles.cols * 20);
         panel.resetBlank();
+        panel.moveBlank(tiles.rows - 1, tiles.cols - 1);
 
         // reset counters
         document.querySelector("#step").textContent = '0';
@@ -280,7 +281,7 @@
             now = new Date();
             elapse = (now - panel.beginTime) / 1000.0;
             time = document.querySelector("#time");
-            time.textContent = elapse;
+            time.textContent = elapse.toFixed(1);
         }, 100);
 
         return panel;
