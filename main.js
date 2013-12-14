@@ -246,7 +246,7 @@
     }
 
     Panel.create = function (image) {
-        var tiles, panel, map, tileSize;
+        var i, ftile, tiles, panel, map, tileSize;
 
         tileSize = parseInt(document.querySelector("#tile-size").value, 10);
         if (image.width < tileSize) {
@@ -268,7 +268,19 @@
 
         panel.randomlyMoveBlank(tiles.rows * tiles.cols * 20);
         panel.resetBlank();
-        panel.moveBlank(tiles.rows - 1, tiles.cols - 1);
+        //panel.moveBlank(tiles.rows - 1, tiles.cols - 1);
+
+        for (i = 0; i < tiles.rows - 1; i += 1) {
+            ftile = document.createElement('div');
+            ftile.style.padding = "1px";
+            ftile.style.width = tileSize + "px";
+            ftile.style.height = tileSize + "px";
+            ftile.style.position = "absolute";
+            ftile.style.top = (tileSize + 2) * i + "px";
+            ftile.style.left = (tileSize + 2) * tiles.cols + "px";
+            ftile.style["background-color"] = "#fff";
+            panel.panel.appendChild(ftile);
+        }
 
         // reset counters
         document.querySelector("#step").textContent = '0';
