@@ -332,6 +332,8 @@
             }
 
             clearInterval(this.timer);
+
+            this.panel.style["background-color"] = "#fff";
         },
 
         addTile: function (row, col, tile) {
